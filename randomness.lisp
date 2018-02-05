@@ -73,14 +73,14 @@
   (setf (cdr (assoc rarity (options-for name)))
         (cons value (cdr (assoc rarity (options-for name))))))
 
-(defun sometimes (name value)
-  (set-rarity 'sometimes name value))
+(defun sometimes (name &rest values)
+  (mapc (lambda (x) (set-rarity 'sometimes name x)) values))
 
-(defun almost-always (name value)
-  (set-rarity 'almost-always name value))
+(defun almost-always (name &rest values)
+  (mapc (lambda (x) (set-rarity 'almost-always name x)) values))
 
-(defun rarely (name value)
-  (set-rarity 'rarely name value))
+(defun rarely (name &rest values)
+  (mapc (lambda (x) (set-rarity 'rarely name x)) values))
 
 (defun pick-a (name)
   (let ((sometimes (cdr (assoc 'sometimes (options-for name))))
@@ -88,9 +88,9 @@
         (rarely (cdr (assoc 'rarely (options-for name)))))
     (set-chosen-value name (pick-from-options
                         (combine-option-lists
-                         95/100 (equal-options almost-always)
-                         5/100 (combine-option-lists 99/100 (equal-options sometimes)
-                                                     1/100 (equal-options rarely)))))))
+                         90/100 (equal-options almost-always)
+                         10/100 (combine-option-lists 98/100 (equal-options sometimes)
+                                                     2/100 (equal-options rarely)))))))
 
 (defun pick-one (set)
   (nth (random (length set)) set))
