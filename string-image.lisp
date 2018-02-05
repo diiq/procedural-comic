@@ -24,3 +24,9 @@
 
 (defmethod stroke ((image string-image))
   (string-image-add image "stroke"))
+
+(defmethod circle ((image string-image) (center point) radius)
+  (string-image-add image (format nil "circle ~S ~D" center radius)))
+
+(defmethod fill-rgb ((image string-image) r g b)
+  (string-image-add image (format nil "fill-rgb ~2F ~2F ~2F" r g b)))

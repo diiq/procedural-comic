@@ -11,6 +11,10 @@
    (image  :accessor image
            :initarg :image)))
 
+(defmethod initialize-instance :after ((image vecto-image) &rest args)
+  (setf (image image)
+        (make-vecto-image (width image) (height image))))
+
 (defun make-vecto-image (width height)
   (let ((vecto-image nil))
     (vecto:with-canvas (:width width :height height)
@@ -29,6 +33,15 @@
   (using-vecto-image image
     (vecto:line-to (x point) (y point))))
 
+(defmethod circle ((image vecto-image) (center point) radius)
+  (using-vecto-image image
+    (vecto:arc (x center) (y center) radius 0 (* 2 pi))))
+
 (defmethod stroke ((image vecto-image))
   (using-vecto-image image
     (vecto:stroke)))
+
+(defmethod fill-rgb ((image vecto-image) r g b)
+  (using-vecto-image image
+    (vecto:set-rgb-fill r g b)
+    (vecto:fill-path)))

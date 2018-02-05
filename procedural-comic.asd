@@ -11,5 +11,6 @@
                (:file "point")
                (:file "string-image")
                (:file "vecto-image")
+               (:file "randomness")
                (:file "panelling")
                (:file "procedural-comic")))
