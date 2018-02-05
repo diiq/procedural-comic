@@ -15,12 +15,8 @@
     (page image width height)
     (image image)))
 
-(defun comic (w h pages)
+(defun comic (w h pages location)
   (loop for i from 1 to pages
-       do (png-page w h (format nil "~~/comic/page_~D.png" i))))
+       do (png-page w h (format nil "~A/page_~D.png" location i))))
 
-
-;(string-page 100 300)
-
-; call: (comic 768 1024 100) ; to generate a 24 page comic layout
-(comic 768 1024 100)
+; call: (comic 768 1024 24 "~/comic/") ; to generate a 24 page comic layout

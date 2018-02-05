@@ -163,7 +163,7 @@
   (with-options-for 'add-circle
     (almost-always 'add-circle nil)
     (if (and (> (length panelset) 1) (< (length panelset) 4))
-        (rarely 'add-circle 't nil))
+        (rarely 'add-circle 't nil nil))
     (if (and (> (length panelset) 1) (pick-a 'add-circle))
         (let* ((panel (nth (random (- (length panelset) 1)) panelset))
                (height (- (panel-top-right panel) (panel-bottom-right panel)))

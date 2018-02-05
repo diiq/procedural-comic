@@ -88,8 +88,8 @@
         (rarely (cdr (assoc 'rarely (options-for name)))))
     (set-chosen-value name (pick-from-options
                         (combine-option-lists
-                         90/100 (equal-options almost-always)
-                         10/100 (combine-option-lists 98/100 (equal-options sometimes)
+                         95/100 (equal-options almost-always)
+                         5/100 (combine-option-lists 98/100 (equal-options sometimes)
                                                      2/100 (equal-options rarely)))))))
 
 (defun pick-one (set)
