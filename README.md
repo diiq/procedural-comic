@@ -4,9 +4,16 @@ Generate comic page layouts procedurally. Requires vecto. Load the library, then
 
 Pages include panels, and focal points.
 
-A few pages will have skewed horiztonal gutters for more dynamic layouts. A few will have inset circular panels for highlighting important details or expressions. Some panels will be borderless. Some pages will be single-panel splash pages. MOST pages will be classic, rectilinear, three-row layouts.
+MOST pages will be classic, rectilinear, three-row layouts.
+![A comic](page_1.png?raw=true)
 
- ![A comic](page_1.png?raw=true)
- ![Borderless](page_2.png?raw=true)
- ![Skewed](page_3.png?raw=true)
- ![Inset](page_4.png?raw=true)
+Some panels will be borderless.
+![Borderless](page_2.png?raw=true)
+
+A few pages will have skewed horiztonal gutters for more dynamic layouts.
+![Skewed](page_3.png?raw=true)
+
+A few will have inset circular panels for highlighting important details or expressions.
+![Inset](page_4.png?raw=true)
+
+Some pages will be single-panel splash pages.
