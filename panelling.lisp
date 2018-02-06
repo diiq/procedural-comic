@@ -73,7 +73,7 @@
            collect new-panel))))
 
 (defmethod shrink-panel (gutter (panel panel))
-  (let ((partial-gutter (pt (/ gutter 2) (/ gutter 2))))
+  (let ((partial-gutter (pt (/ gutter 2) gutter)))
     (make-panel :top-left (+ (panel-top-left panel) (flip-y partial-gutter))
                 :top-right (+ (panel-top-right panel) (* -1 partial-gutter))
                 :bottom-left (+ (panel-bottom-left panel) partial-gutter)
@@ -189,8 +189,7 @@
         (almost-always 'horizontal-divisions 1))
 
     (if (equal (chosen-value 'vertical-divisions) 2)
-        (progn (almost-always 'horizontal-divisions 1)
-               (almost-always 'horizontal-divisions 2)))
+        (progn (almost-always 'horizontal-divisions 1 2 3)))
     (divisions (pick-a 'horizontal-divisions))))
 
 (defun vertical-divisions ()
