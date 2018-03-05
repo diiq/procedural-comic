@@ -20,14 +20,13 @@
                              :bottom-right (pt width 0)
                              :top-left (pt 0 height)
                              :top-right (pt width height))))
-      (maybe-add-focal-points
-       (shrink-panels
-        (+ 5 (random 10))
-        (maybe-set-one-borderless
-         (mapcan (lambda (x) (maybe-add-inset-circle
-                              (maybe-subdivide-one
-                               (subdivide-horizontal-proportional (horizontal-divisions) x))))
-                 (subdivide-vertical-proportional (vertical-divisions) (shrink-panel 5 panel)))))))))
+      (shrink-panels
+       (+ 5 (random 10))
+       (maybe-set-one-borderless
+        (mapcan (lambda (x) (maybe-add-inset-circle
+                             (maybe-subdivide-one
+                              (subdivide-horizontal-proportional (horizontal-divisions) x))))
+                (subdivide-vertical-proportional (vertical-divisions) (shrink-panel 5 panel))))))))
 
 
 
@@ -73,7 +72,7 @@
            collect new-panel))))
 
 (defmethod shrink-panel (gutter (panel panel))
-  (let ((partial-gutter (pt (/ gutter 2) gutter)))
+  (let ((partial-gutter (pt (/ gutter 2) (/ gutter 1.25))))
     (make-panel :top-left (+ (panel-top-left panel) (flip-y partial-gutter))
                 :top-right (+ (panel-top-right panel) (* -1 partial-gutter))
                 :bottom-left (+ (panel-bottom-left panel) partial-gutter)
@@ -206,6 +205,7 @@
     (line-to image (panel-bottom-right panel))
     (line-to image (panel-bottom-left panel))
     (line-to image (panel-top-left panel))
+    (stroke-rgb image 0 0 0)
     (stroke image))
   (if (panel-focal-point panel)
       (draw-focal-point image (panel-focal-point panel))))
@@ -225,4 +225,6 @@
   (stroke image))
 
 (defun draw-panelset (image panelset)
-  (mapc (lambda (x) (draw-panel image x)) panelset))
+  (loop for panel in panelset
+     do (draw-layout image (natural-grid (panel-rect panel)))
+     do (draw-panel image panel)))

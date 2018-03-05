@@ -68,3 +68,7 @@
   (pt (x a) (- (y a))))
 
 ;; Define equality?'
+
+(defmethod dot ((a point) (b point))
+  (+ (* (x a) (x b))
+     (* (y a) (y b))))

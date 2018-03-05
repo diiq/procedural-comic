@@ -41,6 +41,10 @@
   (using-vecto-image image
     (vecto:stroke)))
 
+(defmethod stroke-rgb ((image vecto-image) r g b)
+  (using-vecto-image image
+    (vecto:set-rgb-stroke r g b)))
+
 (defmethod fill-rgb ((image vecto-image) r g b)
   (using-vecto-image image
     (vecto:set-rgb-fill r g b)

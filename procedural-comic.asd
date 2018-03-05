@@ -13,4 +13,5 @@
                (:file "vecto-image")
                (:file "randomness")
                (:file "panelling")
+               (:file "layout")
                (:file "procedural-comic")))

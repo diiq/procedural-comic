@@ -98,3 +98,13 @@
 (defsetf pick-one (set) (value)
   `(let ((n (random (length ,set))))
      (setf (nth n ,set) ,value)))
+
+(defun remove-nth (n list)
+  (append (subseq list 0 n) (nthcdr (+ 1 n) list)))
+
+(defun pick-n (c set)
+    (loop repeat c
+       for mset = set then (remove-nth n mset)
+       for n = (random (length mset))
+       for it = (nth n mset)
+       collecting it))

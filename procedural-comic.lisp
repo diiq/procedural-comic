@@ -19,4 +19,4 @@
   (loop for i from 1 to pages
        do (png-page w h (format nil "~A/page_~D.png" location i))))
 
-; call: (comic 768 1024 24 "~/comic/") ; to generate a 24 page comic layout
+; call: (comic 768 1024 100 "~/comic/") ; to generate a 24 page comic layout
