@@ -120,7 +120,7 @@
         (sometimes 'subdivide 't))
     (if (pick-a 'subdivide)
         (let ((n (random (length panelset))))
-          (setf (nth n panelset) (subdivide-vertical (random 3) (nth n panelset)))
+          (setf (nth n panelset) (subdivide-vertical-proportional (loop repeat (random 3) collect 1) (nth n panelset)))
           (flatten panelset))
         panelset)))
 
@@ -224,7 +224,12 @@
   (circle image (circle-panel-center panel) (circle-panel-radius panel))
   (stroke image))
 
+(defmethod draw-natural-grid (image (panel panel))
+  (draw-layout image (natural-grid (panel-rect panel))))
+
+(defmethod draw-natural-grid (image (panel circle-panel)))
+
 (defun draw-panelset (image panelset)
   (loop for panel in panelset
-     do (draw-layout image (natural-grid (panel-rect panel)))
+     do (draw-natural-grid image panel)
      do (draw-panel image panel)))

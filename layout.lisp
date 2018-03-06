@@ -8,15 +8,16 @@
 
 ; Lines are unique within a container
 (defstruct line
-  start
-  end)
+  (start nil :type point)
+  (end nil :type point))
 
 (defstruct layout
   bounding-rect
   (h-lines ())
   (v-lines ())
   (d-lines ())
-  (d-line-for-rect ()))
+  (line-test ())
+  (diagonalized-rects ()))
 
 (defmethod panel-rect ((panel panel))
   (make-rect :top-left (panel-top-left panel)
@@ -40,14 +41,37 @@
   (make-line :start (rect-bottom-left (layout-bounding-rect layout))
              :end (rect-bottom-right (layout-bounding-rect layout))))
 
+(defmethod maybe-add-line ((line line) (layout layout))
+  (let ((points (cons-points (sort-points (line-start line) (line-end line)))))
+    (if (member points (layout-line-test layout) :test #'equalp)
+        ()
+        (progn
+          (layout-add-line-test points layout)
+          line))))
+
 (defmethod layout-add-h-line ((line line) (layout layout))
-  (setf (layout-h-lines layout) (cons line (layout-h-lines layout))))
+  (if (maybe-add-line line layout)
+      (setf (layout-h-lines layout) (cons line (layout-h-lines layout)))))
 
 (defmethod layout-add-v-line ((line line) (layout layout))
-  (setf (layout-v-lines layout) (cons line (layout-v-lines layout))))
+  (if (maybe-add-line line layout)
+      (setf (layout-v-lines layout) (cons line (layout-v-lines layout)))))
 
 (defmethod layout-add-d-line ((line line) (layout layout))
-  (setf (layout-d-lines layout) (cons line (layout-d-lines layout))))
+  (if (maybe-add-line line layout)
+      (setf (layout-d-lines layout) (cons line (layout-d-lines layout)))))
+
+(defmethod layout-add-diagonalized-rect (rect (layout layout))
+  (let ((points (cons-points (sort-points (rect-top-left rect)
+                                            (rect-top-right rect)
+                                            (rect-bottom-left rect)
+                                            (rect-bottom-right rect)))))
+    (if (member points (layout-diagonalized-rects layout) :test #'equalp)
+        ()
+        (setf (layout-diagonalized-rects layout) (cons points (layout-diagonalized-rects layout))))))
+
+(defmethod layout-add-line-test (points (layout layout))
+  (setf (layout-line-test layout) (cons points (layout-line-test layout))))
 
 (defun create-layout (rect)
   (let ((layout (make-layout :bounding-rect rect)))
@@ -67,13 +91,16 @@
   (pick-one (layout-h-lines layout)))
 
 (defmethod pick-vertical-line ((layout layout))
-  (pick-one (layout-h-lines layout)))
+  (pick-one (layout-v-lines layout)))
 
 (defmethod pick-diagonal-line ((layout layout))
   (pick-one (layout-d-lines layout)))
 
 (defmethod pick-intersecting-lines ((layout layout))
-  (pick-n 2 (list (pick-horizontal-line layout) (pick-vertical-line layout) (pick-diagonal-line layout))))
+  (let ((lines (pick-n 2 (layout-lines layout))))
+    (if (and (apply #'line-intersection lines) (point-inside (apply #'line-intersection lines) layout))
+        lines
+        (pick-intersecting-lines layout))))
 
 (defmethod line-intersection ((line-a line) (line-b line))
   (let* ((x1 (x (line-start line-a)))
@@ -86,13 +113,13 @@
          (y4 (y (line-end line-b)))
          (divisor (- (* (- x1 x2) (- y3 y4))
                      (* (- y1 y2) (- x3 x4)))))
-
-    (pt (/ (- (* (- (* x1 y2) (* y1 x2)) (- x3 x4))
-              (* (- (* x3 y4) (* y3 x4)) (- x1 x2)))
-           divisor)
-        (/ (- (* (- (* x1 y2) (* y1 x2)) (- y3 y4))
-              (* (- (* x3 y4) (* y3 x4)) (- y1 y2)))
-           divisor))))
+    (unless (< (abs divisor) 0.01)
+      (pt (/ (- (* (- (* x1 y2) (* y1 x2)) (- x3 x4))
+                (* (- (* x3 y4) (* y3 x4)) (- x1 x2)))
+             divisor)
+          (/ (- (* (- (* x1 y2) (* y1 x2)) (- y3 y4))
+                (* (- (* x3 y4) (* y3 x4)) (- y1 y2)))
+             divisor)))))
 
 
 ;; Steps:
@@ -118,8 +145,8 @@
          (am (- b m))
          (bc (- b c))
          (bm (- b m)))
-    (and (<= 0 (dot ab am) (dot ab ab))
-         (<= 0 (dot bc bm) (dot bc bc)))))
+    (and (< 0 (dot ab am) (dot ab ab))
+         (< 0 (dot bc bm) (dot bc bc)))))
 
 (defmethod create-diagonal ((rect rect))
   ;; Create a diagonal line across the rectangle, one direction or the other.
@@ -129,9 +156,9 @@
 
 (defun random-proportion ()
   (with-options-for 'proportion
-    (almost-always 'proportion .33 .66)
-    (sometimes 'proportion '.25 .75 .5)
-    (pick-a 'proportion)))
+    (almost-always 'proportion 1/3 2/3)
+    (sometimes 'proportion 1/4 3/4 1/2)
+    (+ (- 1/32 (* 1/16 (random 1.0))) (pick-a 'proportion))))
 
 (defmethod create-random-horizontal ((rect rect))
   (let ((proportion (random-proportion))
@@ -148,21 +175,51 @@
     (make-line :start (+ (rect-top-left rect) (* top-span proportion))
                :end (+ (rect-bottom-left rect) (* bottom-span proportion)))))
 
-(defmethod add-first-diagonal ((layout layout))
-  ;; Add an initial diagonal across the whole layout.
-  (layout-add-d-line (create-diagonal (layout-bounding-rect layout)) layout))
-
 (defmethod add-first-orthogonal ((layout layout))
   (if (equal (pick-one '(h v)) 'v)
       (layout-add-v-line (create-random-vertical (layout-bounding-rect layout)) layout)
       (layout-add-h-line (create-random-horizontal (layout-bounding-rect layout)) layout)))
 
+(defmethod create-v-line-through ((pt point) (layout layout))
+  (uniqify-v-line (make-line :start pt :end (+ (pt 0 1) pt)) layout))
+
+(defmethod create-h-line-through ((pt point) (layout layout))
+  (uniqify-h-line (make-line :start pt :end (+ (pt 1 0) pt)) layout))
+
+(defmethod add-orthogonal ((layout layout))
+  (let* ((lines (pick-intersecting-lines layout))
+         (intersection (apply #'line-intersection lines)))
+    (if (equal (pick-one '(h v)) 'v)
+        (layout-add-v-line (create-v-line-through intersection layout) layout)
+        (layout-add-h-line (create-h-line-through intersection layout) layout))))
+
+(defmethod pick-rect ((layout layout))
+  (let* ((hs (pick-n 2 (layout-h-lines layout)))
+         (vs (pick-n 2 (layout-v-lines layout))))
+    (make-rect :top-left (line-intersection (nth 0 hs) (nth 0 vs))
+               :top-right (line-intersection (nth 0 hs) (nth 1 vs))
+               :bottom-left (line-intersection (nth 1 hs) (nth 0 vs))
+               :bottom-right (line-intersection (nth 1 hs) (nth 1 vs)))))
+
+(defun cons-points (points)
+  (map 'list (lambda (pt) (cons (round (x pt) 100) (round (y pt) 100))) points))
+
+
+(defmethod add-diagonal ((layout layout))
+  (let ((rect (pick-rect layout)))
+    (if (layout-add-diagonalized-rect rect layout)
+        (layout-add-d-line (create-diagonal rect) layout))))
 
 (defmethod natural-grid (rect)
   (with-random-context
     (let ((layout (create-layout rect)))
-      (add-first-diagonal layout)
+      (add-diagonal layout)
       (add-first-orthogonal layout)
+      (loop repeat (+ 5 (random 10))
+         do (add-orthogonal layout)
+         do (add-orthogonal layout)
+         do (add-orthogonal layout)
+         do (add-diagonal layout))
       layout)))
 
 (defmethod draw-line (image (line line))
@@ -171,6 +228,9 @@
    (stroke-rgb image .9 .9 .9)
    (stroke image))
 
-
 (defmethod draw-layout (image (layout layout))
   (loop for line in (layout-lines layout) do (draw-line image line)))
+
+
+
+;; TODO: chose horizontal or vertical randomly but weighted based on proportion of panel

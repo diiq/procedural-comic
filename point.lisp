@@ -5,16 +5,13 @@
   ((x :accessor x
       :initarg :x)
    (y :accessor y
-      :initarg :y)
-   (weight :accessor weight
-           :initarg :weight
-           :initform nil)))
+      :initarg :y)))
 
 (defun pt (x y)
   (make-instance 'point :x x :y y))
 
 (defmethod print-object ((point point) out)
-  (format out "<~4D, ~4D>~@[ @ ~D~]" (x point) (y point) (weight point)))
+  (format out "<~4D, ~4D>" (x point) (y point)))
 
 (defmethod pt-length ((point point))
   (let ((x (x point))
@@ -72,3 +69,6 @@
 (defmethod dot ((a point) (b point))
   (+ (* (x a) (x b))
      (* (y a) (y b))))
+
+(defun sort-points (&rest points)
+  (sort points #'(lambda (a b) (or (< (x a) (x b)) (< (y a) (y b))))))
